@@ -6,10 +6,33 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../app/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+enum BuildingType {
+    UNIV_APT
+    SUITE
+    PLAZA_PRIV
+    PLAZA_SHARED
+    DELUXE
+    CLASSIC
+}
+
+model Building {
+    id          Int             @id @default(autoincrement())
+    name        String
+    address     String
+    type        BuildingType
+    createdAt   DateTime        @default(now())
+    updatedAt   DateTime        @updatedAt
+
+    @@unique([name, address])
+    @@index([name])
+    @@index([address])
+    @@index([type])
+    uid String @unique @default(uuid())
 }
