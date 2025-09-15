@@ -1,0 +1,22 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15
+    container_name: ucla-res-pg
+    environment:
+      POSTGRES_DB: ucla_res
+      POSTGRES_USER: resmaster
+      POSTGRES_PASSWORD: respass
+    ports:
+      - "5433:5432"
+    volumes:
+      - ucla-res-pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U resmaster -d ucla_res"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  ucla-res-pgdata:
