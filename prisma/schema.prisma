@@ -21,22 +21,12 @@ enum BuildingType {
     CLASSIC
 }
 
-model User {
-    id          Int             @id @default(autoincrement())
-    email       String          @unique
-    password    String
-    name        String
-    createdAt   DateTime        @default(now())
-    updatedAt   DateTime        @updatedAt
-
-    @@index([email])
-}
-
 model Building {
     id          Int             @id @default(autoincrement())
     name        String
     address     String
     type        BuildingType
+    reviews     Review[]
     createdAt   DateTime        @default(now())
     updatedAt   DateTime        @updatedAt
 
@@ -44,5 +34,38 @@ model Building {
     @@index([name])
     @@index([address])
     @@index([type])
-    uid String @unique @default(uuid())
+}
+
+model User {
+    id          Int             @id @default(autoincrement())
+    username    String          @unique
+    password    String
+    email       String          @unique
+    class       Int
+    reviews     Review[]        @relation("UserReviews")
+    createdAt   DateTime        @default(now())
+    updatedAt   DateTime        @updatedAt
+
+    @@index([email])
+    @@index([username])
+}
+
+model Review {
+    id          Int             @id @default(autoincrement())
+    building    String          // Scalar field for indexing
+    overall     Int
+    location    Int             // Hill location (food, amenities, other dorms)
+    distance    Int             // distance to campus
+    social      Int
+    noise       Int
+    clean       Int
+    value       Int
+    text        String?         // optional text review
+    authorId    Int
+    author      User            @relation("UserReviews", fields: [authorId], references: [id])
+    createdAt   DateTime        @default(now())
+    updatedAt   DateTime        @updatedAt
+
+    @@index([building])
+    @@index([authorId])
 }
