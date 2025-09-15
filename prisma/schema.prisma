@@ -16,8 +16,7 @@ datasource db {
 enum BuildingType {
     UNIV_APT
     SUITE
-    PLAZA_PRIV
-    PLAZA_SHARED
+    PLAZA
     DELUXE
     CLASSIC
 }
