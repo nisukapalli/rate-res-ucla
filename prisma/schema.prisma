@@ -6,10 +6,66 @@
 
 generator client {
   provider = "prisma-client"
-  output   = "../lib/generated/prisma"
+  output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+enum BuildingType {
+    UNIV_APT
+    SUITE
+    PLAZA
+    DELUXE
+    CLASSIC
+}
+
+model Building {
+    id          Int             @id @default(autoincrement())
+    name        String
+    address     String
+    type        BuildingType
+    createdAt   DateTime        @default(now())
+    updatedAt   DateTime        @updatedAt
+
+    @@unique([name, address])
+    @@index([name])
+    @@index([address])
+    @@index([type])
+}
+
+model User {
+    id          Int             @id @default(autoincrement())
+    username    String          @unique
+    password    String
+    email       String          @unique
+    class       Int
+    reviews     Review[]        @relation("UserReviews")
+    createdAt   DateTime        @default(now())
+    updatedAt   DateTime        @updatedAt
+
+    @@index([email])
+    @@index([username])
+}
+
+model Review {
+    id          Int             @id @default(autoincrement())
+    building    String          // Scalar field for indexing
+    overall     Int
+    location    Int             // Hill location (food, amenities, other dorms)
+    distance    Int             // distance to campus
+    social      Int
+    noise       Int
+    clean       Int
+    value       Int
+    text        String?         // optional text review
+    authorId    Int
+    author      User            @relation("UserReviews", fields: [authorId], references: [id])
+    createdAt   DateTime        @default(now())
+    updatedAt   DateTime        @updatedAt
+
+    @@index([building])
+    @@index([authorId])
 }
