@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client"
-  output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
@@ -69,3 +68,4 @@ model Review {
     @@index([building])
     @@index([authorId])
 }
+
