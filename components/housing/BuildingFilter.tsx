@@ -30,6 +30,7 @@ const getTypeDisplayName = (type: string): string => {
 
 export default function BuildingFilter({ buildings }: BuildingFilterProps) {
   const [selectedTypes, setSelectedTypes] = useState<string[]>(["ALL"]);
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   const handleTypeToggle = (type: string) => {
     if (type === "ALL") {
@@ -54,15 +55,32 @@ export default function BuildingFilter({ buildings }: BuildingFilterProps) {
     }
   };
 
-  const filteredBuildings =
-    selectedTypes.includes("ALL")
-      ? buildings
-      : buildings.filter((building) => selectedTypes.includes(building.type));
+  const filteredBuildings = buildings.filter((building) => {
+    // Filter by type
+    const matchesType =
+      selectedTypes.includes("ALL") || selectedTypes.includes(building.type);
+
+    // Filter by search query (case-insensitive, partial match)
+    const matchesSearch =
+      searchQuery === "" ||
+      building.name.toLowerCase().includes(searchQuery.toLowerCase());
+
+    return matchesType && matchesSearch;
+  });
 
   return (
     <div className="min-h-screen bg-white p-8">
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
+          <div className="mb-4">
+            <input
+              type="text"
+              placeholder="Search for a building..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full max-w-md rounded-lg border-2 border-gray-400 px-4 py-3 text-lg text-gray-600 placeholder:text-gray-400 shadow-md focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            />
+          </div>
           <div className="flex flex-wrap gap-2">
             {BUILDING_TYPES.map((type) => (
               <button
