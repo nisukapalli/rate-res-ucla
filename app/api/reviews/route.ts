@@ -12,7 +12,6 @@ export async function POST(request: NextRequest) {
       social,
       noise,
       clean,
-      value,
       text,
       authorId,
     } = body;
@@ -25,13 +24,12 @@ export async function POST(request: NextRequest) {
       social === undefined ||
       noise === undefined ||
       clean === undefined ||
-      value === undefined ||
       !authorId
     ) {
       return NextResponse.json(
         {
           error:
-            "Missing required fields: building, overall, location, distance, social, noise, clean, value, authorId",
+            "Missing required fields: building, overall, location, distance, social, noise, clean, authorId",
         },
         { status: 400 }
       );
@@ -46,7 +44,6 @@ export async function POST(request: NextRequest) {
         social,
         noise,
         clean,
-        value,
         text: text || null,
         authorId,
       },
@@ -55,8 +52,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(review, { status: 201 });
     
   } catch (error: any) {
+    console.error("Error creating review:", error);
     return NextResponse.json(
-      { error: "Failed to create review" },
+      { error: `Failed to create review: ${error.message || "Unknown error"}` },
       { status: 500 }
     );
   }

@@ -21,7 +21,6 @@ export default function ReviewForm({
     social: 0,
     noise: 0,
     clean: 0,
-    value: 0,
     text: "",
   });
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -41,8 +40,7 @@ export default function ReviewForm({
       formData.distance === 0 ||
       formData.social === 0 ||
       formData.noise === 0 ||
-      formData.clean === 0 ||
-      formData.value === 0
+      formData.clean === 0
     ) {
       alert("Please rate all categories");
       return;
@@ -127,17 +125,6 @@ export default function ReviewForm({
               }
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Overall Value
-            </label>
-            <StarRating
-              value={formData.value}
-              onChange={(value) =>
-                setFormData({ ...formData, value: value })
-              }
-            />
-          </div>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -165,7 +152,6 @@ export default function ReviewForm({
                 social: 0,
                 noise: 0,
                 clean: 0,
-                value: 0,
                 text: "",
               });
               if (textareaRef.current) {

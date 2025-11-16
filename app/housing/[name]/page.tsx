@@ -105,10 +105,6 @@ export default async function BuildingDetailPage({
                       <span className="text-gray-600 w-20">Clean:</span>
                       <StarRating value={review.clean} readOnly />
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-600 w-20">Value:</span>
-                      <StarRating value={review.value} readOnly />
-                    </div>
                   </div>
                 </div>
               ))

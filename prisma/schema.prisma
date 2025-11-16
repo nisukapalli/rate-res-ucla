@@ -58,7 +58,6 @@ model Review {
     social      Int
     noise       Int
     clean       Int
-    value       Int
     text        String?         // optional text review
     authorId    Int
     author      User            @relation("UserReviews", fields: [authorId], references: [id])
