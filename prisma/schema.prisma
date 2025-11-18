@@ -44,6 +44,7 @@ model User {
     email       String          @unique
     class       Int
     reviews     Review[]        @relation("UserReviews")
+    votes       UserVote[]      @relation("UserVotes")
     createdAt   DateTime        @default(now())
     updatedAt   DateTime        @updatedAt
 
@@ -65,10 +66,30 @@ model Review {
     downvotes   Int             @default(0)
     authorId    Int
     author      User            @relation("UserReviews", fields: [authorId], references: [id])
+    votes       UserVote[]      @relation("ReviewVotes")
     createdAt   DateTime        @default(now())
     updatedAt   DateTime        @updatedAt
 
     @@index([building])
     @@index([authorId])
+}
+
+enum VoteType {
+    UPVOTE
+    DOWNVOTE
+}
+
+model UserVote {
+    id          Int             @id @default(autoincrement())
+    userId      Int
+    reviewId    Int
+    voteType    VoteType
+    user        User            @relation("UserVotes", fields: [userId], references: [id], onDelete: Cascade)
+    review      Review          @relation("ReviewVotes", fields: [reviewId], references: [id], onDelete: Cascade)
+    createdAt   DateTime        @default(now())
+
+    @@unique([userId, reviewId])
+    @@index([userId])
+    @@index([reviewId])
 }
 

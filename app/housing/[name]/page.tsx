@@ -48,6 +48,9 @@ type Review = {
   noise: number;
   clean: number;
   text: string | null;
+  upvotes: number;
+  downvotes: number;
+  userVote: 'upvote' | 'downvote' | null;
   createdAt: string;
   author: {
     username: string;
@@ -71,6 +74,35 @@ export default function BuildingDetailPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [loading, setLoading] = useState(true);
+
+  const handleVote = async (reviewId: number, voteType: 'upvote' | 'downvote') => {
+    try {
+      const response = await fetch(`/api/reviews/${reviewId}/vote`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ voteType }),
+      });
+
+      if (response.ok) {
+        const { upvotes, downvotes, userVote } = await response.json();
+        setReviews(prevReviews =>
+          prevReviews.map(review =>
+            review.id === reviewId
+              ? { ...review, upvotes, downvotes, userVote }
+              : review
+          )
+        );
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to vote');
+      }
+    } catch (error) {
+      console.error('Error voting:', error);
+      alert('Failed to vote. Please try again.');
+    }
+  };
 
   useEffect(() => {
     async function fetchData() {
@@ -180,8 +212,8 @@ export default function BuildingDetailPage() {
         {/* Header Section */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            {building.name}
-          </h1>
+          {building.name}
+        </h1>
           <p className="text-lg text-gray-600 mb-2">{building.address}</p>
           <span className={`inline-block px-3 py-1 rounded text-sm font-medium ${getBadgeColor(building.type)}`}>
             {building.type}
@@ -197,7 +229,7 @@ export default function BuildingDetailPage() {
               <p className="text-gray-500">Image placeholder</p>
             </div>
 
-            <ReviewsSection buildingName={building.name} reviewsCount={reviews.length}>
+        <ReviewsSection buildingName={building.name} reviewsCount={reviews.length}>
               {reviews.length > 0 && (
                 <div className="mb-6 flex items-center gap-3">
                   <label htmlFor="sort" className="text-sm font-medium text-gray-700">
@@ -214,61 +246,101 @@ export default function BuildingDetailPage() {
                   </select>
                 </div>
               )}
-              <div className="space-y-4">
-                {reviews.length === 0 ? (
-                  <p className="text-gray-600">No reviews yet.</p>
-                ) : (
+          <div className="space-y-4">
+            {reviews.length === 0 ? (
+              <p className="text-gray-600">No reviews yet.</p>
+            ) : (
                   sortedReviews.map((review: Review) => (
-                    <div
-                      key={review.id}
+                <div
+                  key={review.id}
                       className="border border-gray-300 rounded-lg p-4 bg-white shadow-sm"
-                    >
-                      <div className="flex justify-between items-start mb-4">
-                        <p className="font-semibold text-gray-900">
-                          Class of {review.author.class}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {new Date(review.createdAt).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm mb-4">
+                >
+                  <div className="flex justify-between items-start mb-4">
+                    <p className="font-semibold text-gray-900">
+                      Class of {review.author.class}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {new Date(review.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm mb-4">
                         <div className="flex flex-col gap-1">
                           <span className="text-gray-600 font-medium">Overall:</span>
-                          <StarRating value={review.overall} readOnly />
-                        </div>
+                      <StarRating value={review.overall} readOnly />
+                    </div>
                         <div className="flex flex-col gap-1">
                           <span className="text-gray-600 font-medium">Location:</span>
-                          <StarRating value={review.location} readOnly />
-                        </div>
+                      <StarRating value={review.location} readOnly />
+                    </div>
                         <div className="flex flex-col gap-1">
                           <span className="text-gray-600 font-medium">Distance from Campus:</span>
-                          <StarRating value={review.distance} readOnly />
-                        </div>
+                      <StarRating value={review.distance} readOnly />
+                    </div>
                         <div className="flex flex-col gap-1">
                           <span className="text-gray-600 font-medium">Social Activity:</span>
-                          <StarRating value={review.social} readOnly />
-                        </div>
+                      <StarRating value={review.social} readOnly />
+                    </div>
                         <div className="flex flex-col gap-1">
                           <span className="text-gray-600 font-medium">Noise Level:</span>
-                          <StarRating value={review.noise} readOnly />
-                        </div>
+                      <StarRating value={review.noise} readOnly />
+                    </div>
                         <div className="flex flex-col gap-1">
                           <span className="text-gray-600 font-medium">Cleanliness:</span>
-                          <StarRating value={review.clean} readOnly />
-                        </div>
-                      </div>
-                      {review.text && (
-                        <div className="p-3 bg-gray-50 rounded-lg border-l-4 border-blue-500">
-                          <p className="text-gray-800 text-base leading-relaxed italic">
-                            "{review.text}"
-                          </p>
-                        </div>
-                      )}
+                      <StarRating value={review.clean} readOnly />
                     </div>
-                  ))
-                )}
-              </div>
-            </ReviewsSection>
+                  </div>
+                  {review.text && (
+                        <div className="p-3 bg-gray-50 rounded-lg border-l-4 border-blue-500 mb-3">
+                      <p className="text-gray-800 text-base leading-relaxed italic">
+                        "{review.text}"
+                      </p>
+                    </div>
+                  )}
+                      <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-200">
+                        <button
+                          className={`flex items-center gap-1.5 transition-colors ${
+                            review.userVote === 'upvote' 
+                              ? 'text-green-600' 
+                              : 'text-green-500 hover:text-green-600'
+                          }`}
+                          onClick={() => handleVote(review.id, 'upvote')}
+                        >
+                          {review.userVote === 'upvote' ? (
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                              <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />
+                            </svg>
+                          ) : (
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                            </svg>
+                          )}
+                          <span className="text-sm font-medium">{review.upvotes}</span>
+                        </button>
+                        <button
+                          className={`flex items-center gap-1.5 transition-colors ${
+                            review.userVote === 'downvote' 
+                              ? 'text-red-600' 
+                              : 'text-red-500 hover:text-red-600'
+                          }`}
+                          onClick={() => handleVote(review.id, 'downvote')}
+                        >
+                          {review.userVote === 'downvote' ? (
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                              <path d="M18 9.5a1.5 1.5 0 11-3 0v-6a1.5 1.5 0 013 0v6zM14 9.667v-5.43a2 2 0 00-1.105-1.79l-.05-.025A4 4 0 0011.055 2H5.64a2 2 0 00-1.962 1.608l-1.2 6A2 2 0 004.44 12H8v4a2 2 0 002 2 1 1 0 001-1v-.667a4 4 0 01.8-2.4l1.4-1.866a4 4 0 00.8-2.4z" />
+                            </svg>
+                          ) : (
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.096c.5 0 .905-.405.905-.904 0-.715.211-1.413.608-2.008L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5" />
+                            </svg>
+                          )}
+                          <span className="text-sm font-medium">{review.downvotes}</span>
+                        </button>
+                      </div>
+                </div>
+              ))
+            )}
+          </div>
+        </ReviewsSection>
           </div>
 
           {/* Right Column - Sticky Ratings Summary */}
