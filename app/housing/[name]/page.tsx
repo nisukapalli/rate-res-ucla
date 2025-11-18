@@ -316,8 +316,8 @@ export default function BuildingDetailPage() {
                         <span className="text-sm font-medium text-gray-700">Distance</span>
                         <InfoTooltip info={{
                           category: "Distance",
-                          low: "Very close to campus (short walk)",
-                          high: "Far from campus (long walk or need transportation)"
+                          low: "Far from campus (long walk or need transportation)",
+                          high: "Very close to campus (short walk)"
                         }} />
                       </div>
                       <span className="text-sm font-semibold text-gray-900">{averages.distance} / 5</span>
