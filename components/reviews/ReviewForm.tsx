@@ -198,7 +198,7 @@ export default function ReviewForm({
             onChange={(e) =>
               setFormData({ ...formData, text: e.target.value })
             }
-            className="w-full border border-gray-300 rounded px-3 py-2 text-sm resize-none overflow-hidden"
+            className="w-full border border-gray-300 rounded px-3 py-2 text-sm resize-none overflow-hidden text-gray-900"
             rows={2}
             style={{ minHeight: "60px" }}
           />

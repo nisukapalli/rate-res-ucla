@@ -9,26 +9,30 @@ export async function GET(
     const { name: nameParam } = await params;
     const name = decodeURIComponent(nameParam);
 
-    const building = await prisma.building.findFirst({
+    const reviews = await prisma.review.findMany({
       where: {
-        name: {
+        building: {
           equals: name,
           mode: "insensitive",
         },
       },
+      orderBy: {
+        createdAt: "desc",
+      },
+      include: {
+        author: {
+          select: {
+            username: true,
+            class: true,
+          },
+        },
+      },
     });
 
-    if (!building) {
-      return NextResponse.json(
-        { error: "Building not found" },
-        { status: 404 }
-      );
-    }
-    return NextResponse.json(building);
-    
+    return NextResponse.json(reviews);
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to fetch building" },
+      { error: "Failed to fetch reviews" },
       { status: 500 }
     );
   }
