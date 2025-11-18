@@ -11,6 +11,13 @@ interface User {
   class: number;
 }
 
+interface Building {
+  id: number;
+  name: string;
+  address: string;
+  type: string;
+}
+
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
@@ -18,22 +25,43 @@ export default function Navbar() {
   const [loading, setLoading] = useState(true);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  const [buildings, setBuildings] = useState<Building[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     checkAuth();
+    fetchBuildings();
   }, [pathname]); // Re-check auth when route changes
 
   useEffect(() => {
-    // Close dropdown when clicking outside
+    // Close dropdowns when clicking outside
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setDropdownOpen(false);
+      }
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowSearchResults(false);
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const fetchBuildings = async () => {
+    try {
+      const response = await fetch('/api/buildings');
+      if (response.ok) {
+        const data = await response.json();
+        setBuildings(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch buildings:', error);
+    }
+  };
 
   const checkAuth = async () => {
     try {
@@ -66,9 +94,61 @@ export default function Navbar() {
     }
   };
 
+  const handleBuildingClick = (buildingName: string) => {
+    const slug = buildingName.replace(/\s+/g, '_');
+    setSearchQuery('');
+    setShowSearchResults(false);
+    router.push(`/housing/${slug}`);
+  };
+
+  const filteredBuildings = buildings.filter(building =>
+    building.name.toLowerCase().includes(searchQuery.toLowerCase())
+  ).slice(0, 5); // Show max 5 results
+
+  const showSearch = pathname !== '/housing';
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 flex justify-between items-center px-6 py-5 bg-blue-600">
       <Link href="/" className="text-white font-black text-3xl px-12">RateResUCLA</Link>
+      
+      {showSearch && (
+        <div className="flex-1 max-w-md mx-8" ref={searchRef}>
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search for a building..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setShowSearchResults(true);
+              }}
+              onFocus={() => setShowSearchResults(true)}
+              className="w-full px-4 py-2 rounded-lg bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white border-2 border-transparent"
+            />
+            {showSearchResults && searchQuery && (
+              <div className="absolute top-full mt-1 w-full bg-white rounded-lg shadow-lg max-h-60 overflow-y-auto z-50">
+                {filteredBuildings.length > 0 ? (
+                  filteredBuildings.map((building) => (
+                    <button
+                      key={building.id}
+                      onClick={() => handleBuildingClick(building.name)}
+                      className="w-full px-4 py-3 text-left hover:bg-gray-100 border-b border-gray-200 last:border-b-0"
+                    >
+                      <div className="font-semibold text-gray-900">{building.name}</div>
+                      <div className="text-sm text-gray-600">{building.address}</div>
+                    </button>
+                  ))
+                ) : (
+                  <div className="px-4 py-3 text-gray-500 text-sm">
+                    No buildings found
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      
       <div className="flex items-center gap-4">
         <Link href="/housing" className="text-white font-semibold hover:underline px-3 py-2">
           All Housing
