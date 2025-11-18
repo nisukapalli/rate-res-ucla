@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma/client";
 import HomeSearch from "@/components/housing/HomeSearch";
+import MapWrapper from "@/components/MapWrapper";
 
 export default async function Home() {
   const buildings = await prisma.building.findMany({
@@ -15,8 +16,8 @@ export default async function Home() {
           <HomeSearch buildings={buildings} />
         </div>
         <div className="w-full max-w-4xl px-4">
-          <div className="w-full h-96 rounded-lg border-2 border-gray-400 bg-gray-100 flex items-center justify-center">
-            <p className="text-gray-500 text-lg">Map placeholder</p>
+          <div className="w-full h-[500px] rounded-lg border-2 border-gray-400 overflow-hidden">
+            <MapWrapper />
           </div>
         </div>
       </main>
