@@ -26,6 +26,8 @@ model Building {
     name        String
     address     String
     type        BuildingType
+    latitude    Float           @default(34.0689)
+    longitude   Float           @default(-118.4452)
     createdAt   DateTime        @default(now())
     updatedAt   DateTime        @updatedAt
 
@@ -59,6 +61,8 @@ model Review {
     noise       Int
     clean       Int
     text        String?         // optional text review
+    upvotes     Int             @default(0)
+    downvotes   Int             @default(0)
     authorId    Int
     author      User            @relation("UserReviews", fields: [authorId], references: [id])
     createdAt   DateTime        @default(now())

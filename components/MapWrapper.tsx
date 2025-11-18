@@ -2,6 +2,19 @@
 
 import dynamic from "next/dynamic";
 
+type Building = {
+  id: number;
+  name: string;
+  address: string;
+  type: string;
+  latitude: number;
+  longitude: number;
+};
+
+type MapWrapperProps = {
+  buildings?: Building[];
+};
+
 // Import Map dynamically to avoid SSR issues with Leaflet
 const Map = dynamic(() => import("@/components/Map"), {
   ssr: false,
@@ -12,7 +25,7 @@ const Map = dynamic(() => import("@/components/Map"), {
   ),
 });
 
-export default function MapWrapper() {
-  return <Map />;
+export default function MapWrapper({ buildings = [] }: MapWrapperProps) {
+  return <Map buildings={buildings} />;
 }
 
