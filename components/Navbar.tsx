@@ -113,11 +113,11 @@ export default function Navbar() {
                     </Link>
                     
                     <Link
-                      href="/review"
+                      href={`/users/${user.id}/settings`}
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       onClick={() => setDropdownOpen(false)}
                     >
-                      Write a Review
+                      Settings
                     </Link>
                     
                     <div className="border-t border-gray-200 mt-1 pt-1">

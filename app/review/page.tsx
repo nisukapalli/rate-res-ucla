@@ -113,7 +113,7 @@ export default function ReviewPage() {
                   value={building.name}
                   disabled={alreadyReviewed}
                 >
-                  {building.name} ({building.type.replace(/_/g, ' ')})
+                  {building.name}
                   {alreadyReviewed ? ' - Already Reviewed ✓' : ''}
                 </option>
               );
@@ -128,6 +128,7 @@ export default function ReviewPage() {
 
         {selectedBuilding && (
           <ReviewForm
+            key={selectedBuilding}
             buildingName={selectedBuilding}
             onSubmit={handleReviewSubmit}
             onCancel={() => setSelectedBuilding('')}
