@@ -32,8 +32,13 @@ export default function ReviewForm({
     }
   }, [formData.text]);
 
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string>("");
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+
     if (
       formData.overall === 0 ||
       formData.location === 0 ||
@@ -42,13 +47,65 @@ export default function ReviewForm({
       formData.noise === 0 ||
       formData.clean === 0
     ) {
-      alert("Please rate all categories");
+      setError("Please rate all categories");
       return;
     }
-    // TODO: Implement form submission
-    console.log("Submit review:", { buildingName, ...formData });
-    if (onSubmit) {
-      onSubmit();
+
+    setSubmitting(true);
+
+    try {
+      // First, get the current user
+      const authResponse = await fetch('/api/auth/me');
+      if (!authResponse.ok) {
+        setError("You must be logged in to submit a review");
+        setSubmitting(false);
+        return;
+      }
+      
+      const { user } = await authResponse.json();
+
+      // Submit the review
+      const response = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          building: buildingName,
+          overall: formData.overall,
+          location: formData.location,
+          distance: formData.distance,
+          social: formData.social,
+          noise: formData.noise,
+          clean: formData.clean,
+          text: formData.text || null,
+          authorId: user.id,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to submit review');
+      }
+
+      // Success - reset form
+      setFormData({
+        overall: 0,
+        location: 0,
+        distance: 0,
+        social: 0,
+        noise: 0,
+        clean: 0,
+        text: "",
+      });
+
+      if (onSubmit) {
+        onSubmit();
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -57,6 +114,11 @@ export default function ReviewForm({
       <h3 className="text-lg font-semibold text-gray-900 mb-3">
         Write a Review
       </h3>
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-red-600 text-sm">{error}</p>
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="space-y-3">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <div>
@@ -167,9 +229,10 @@ export default function ReviewForm({
           </button>
           <button
             type="submit"
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors"
+            disabled={submitting}
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Submit
+            {submitting ? 'Submitting...' : 'Submit'}
           </button>
         </div>
       </form>

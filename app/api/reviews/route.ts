@@ -35,6 +35,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if user already has a review for this building
+    const existingReview = await prisma.review.findFirst({
+      where: {
+        building: building,
+        authorId: authorId,
+      },
+    });
+
+    if (existingReview) {
+      return NextResponse.json(
+        {
+          error: "You have already submitted a review for this building. Each user can only submit one review per building.",
+        },
+        { status: 409 } // 409 Conflict
+      );
+    }
+
     const review = await prisma.review.create({
       data: {
         building,

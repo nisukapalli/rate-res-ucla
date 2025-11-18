@@ -35,6 +35,7 @@ export default async function BuildingDetailPage({
       author: {
         select: {
           username: true,
+          class: true,
         },
       },
     },
@@ -65,26 +66,19 @@ export default async function BuildingDetailPage({
                   key={review.id}
                   className="border border-gray-300 rounded-lg p-4 bg-white"
                 >
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <p className="font-semibold text-gray-900">
-                        {review.author.username}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {new Date(review.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-600">Overall:</span>
-                        <StarRating value={review.overall} readOnly />
-                      </div>
-                    </div>
+                  <div className="flex justify-between items-start mb-4">
+                    <p className="font-semibold text-gray-900">
+                      Class of {review.author.class}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {new Date(review.createdAt).toLocaleDateString()}
+                    </p>
                   </div>
-                  {review.text && (
-                    <p className="text-gray-700 mt-2">{review.text}</p>
-                  )}
-                  <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm mb-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-600 w-20">Overall:</span>
+                      <StarRating value={review.overall} readOnly />
+                    </div>
                     <div className="flex items-center gap-2">
                       <span className="text-gray-600 w-20">Location:</span>
                       <StarRating value={review.location} readOnly />
@@ -106,6 +100,13 @@ export default async function BuildingDetailPage({
                       <StarRating value={review.clean} readOnly />
                     </div>
                   </div>
+                  {review.text && (
+                    <div className="p-3 bg-gray-50 rounded-lg border-l-4 border-blue-500">
+                      <p className="text-gray-800 text-base leading-relaxed italic">
+                        "{review.text}"
+                      </p>
+                    </div>
+                  )}
                 </div>
               ))
             )}

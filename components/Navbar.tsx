@@ -133,12 +133,12 @@ export default function Navbar() {
               </div>
             ) : (
               <>
-                <Link href="/login" className="text-white font-semibold hover:underline px-3 py-2">
-                  Log In
-                </Link>
-                <Link href="/signup" className="text-white font-semibold hover:underline px-3 py-2">
-                  Sign Up
-                </Link>
+        <Link href="/login" className="text-white font-semibold hover:underline px-3 py-2">
+          Log In
+        </Link>
+        <Link href="/signup" className="text-white font-semibold hover:underline px-3 py-2">
+          Sign Up
+        </Link>
               </>
             )}
           </>
