@@ -13,6 +13,8 @@ export async function POST(request: NextRequest) {
       noise,
       clean,
       text,
+      yearStart,
+      yearEnd,
       authorId,
     } = body;
 
@@ -24,13 +26,46 @@ export async function POST(request: NextRequest) {
       social === undefined ||
       noise === undefined ||
       clean === undefined ||
+      yearStart === undefined ||
+      yearEnd === undefined ||
       !authorId
     ) {
       return NextResponse.json(
         {
           error:
-            "Missing required fields: building, overall, location, distance, social, noise, clean, authorId",
+            "Missing required fields: building, overall, location, distance, social, noise, clean, yearStart, yearEnd, authorId",
         },
+        { status: 400 }
+      );
+    }
+
+    // Validate year fields
+    const currentYear = new Date().getFullYear();
+    
+    if (yearStart < 1919 || yearStart > currentYear) {
+      return NextResponse.json(
+        { error: `Start year must be between 1919 and ${currentYear}` },
+        { status: 400 }
+      );
+    }
+
+    if (yearEnd < 1919 || yearEnd > currentYear + 1) {
+      return NextResponse.json(
+        { error: `End year must be between 1919 and ${currentYear + 1}` },
+        { status: 400 }
+      );
+    }
+
+    if (yearStart > yearEnd) {
+      return NextResponse.json(
+        { error: "Start year cannot be after end year" },
+        { status: 400 }
+      );
+    }
+
+    if (yearEnd - yearStart > 4) {
+      return NextResponse.json(
+        { error: "You cannot have lived in a building for more than 4 years" },
         { status: 400 }
       );
     }
@@ -62,6 +97,8 @@ export async function POST(request: NextRequest) {
         noise,
         clean,
         text: text || null,
+        yearStart,
+        yearEnd,
         authorId,
       },
     });

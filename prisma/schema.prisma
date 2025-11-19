@@ -62,6 +62,8 @@ model Review {
     noise       Int
     clean       Int
     text        String?         // optional text review
+    yearStart   Int             @default(2025) // year they started living there
+    yearEnd     Int             @default(2025) // year they stopped living there
     upvotes     Int             @default(0)
     downvotes   Int             @default(0)
     authorId    Int

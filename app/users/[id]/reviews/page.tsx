@@ -15,6 +15,8 @@ interface Review {
   noise: number;
   clean: number;
   text: string | null;
+  yearStart: number;
+  yearEnd: number;
   createdAt: string;
 }
 
@@ -113,11 +115,38 @@ export default function MyReviewsPage({
       noise: review.noise,
       clean: review.clean,
       text: review.text || '',
+      yearStart: review.yearStart,
+      yearEnd: review.yearEnd,
     });
   };
 
   const handleUpdate = async (reviewId: number) => {
     try {
+      // Validate year fields
+      if (editForm.yearStart && editForm.yearEnd) {
+        const currentYear = new Date().getFullYear();
+        
+        if (editForm.yearStart < 1919 || editForm.yearStart > currentYear) {
+          setError(`Start year must be between 1919 and ${currentYear}`);
+          return;
+        }
+
+        if (editForm.yearEnd < 1919 || editForm.yearEnd > currentYear + 1) {
+          setError(`End year must be between 1919 and ${currentYear + 1}`);
+          return;
+        }
+
+        if (editForm.yearStart > editForm.yearEnd) {
+          setError("Start year cannot be after end year");
+          return;
+        }
+
+        if (editForm.yearEnd - editForm.yearStart > 4) {
+          setError("You cannot have lived in a building for more than 4 years");
+          return;
+        }
+      }
+
       const response = await fetch(`/api/reviews/${reviewId}`, {
         method: 'PATCH',
         headers: {
@@ -132,6 +161,7 @@ export default function MyReviewsPage({
         setReviews(reviews.map((r) => (r.id === reviewId ? updatedReview : r)));
         setEditingReviewId(null);
         setEditForm({});
+        setError(''); // Clear any errors
       } else {
         const data = await response.json();
         setError(data.error || 'Failed to update review');
@@ -200,6 +230,12 @@ export default function MyReviewsPage({
                     >
                       {review.building}
                     </Link>
+                    <p className="text-sm text-gray-600 italic mt-1">
+                      {review.yearStart === review.yearEnd 
+                        ? `Lived here in ${review.yearStart}`
+                        : `Lived here from ${review.yearStart} to ${review.yearEnd}`
+                      }
+                    </p>
                     <p className="text-sm text-gray-500 mt-1">
                       Reviewed on {new Date(review.createdAt).toLocaleDateString('en-US', {
                         year: 'numeric',
@@ -265,6 +301,34 @@ export default function MyReviewsPage({
                           />
                         </div>
                       ))}
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Year Started:
+                        </label>
+                        <input
+                          type="number"
+                          value={editForm.yearStart || new Date().getFullYear()}
+                          onChange={(e) => setEditForm({ ...editForm, yearStart: parseInt(e.target.value) })}
+                          min="1919"
+                          max={new Date().getFullYear()}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Year Ended:
+                        </label>
+                        <input
+                          type="number"
+                          value={editForm.yearEnd || new Date().getFullYear()}
+                          onChange={(e) => setEditForm({ ...editForm, yearEnd: parseInt(e.target.value) })}
+                          min="1919"
+                          max={new Date().getFullYear() + 1}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                        />
+                      </div>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">

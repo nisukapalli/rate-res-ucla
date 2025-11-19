@@ -8,12 +8,14 @@ type ReviewsSectionProps = {
   buildingName: string;
   reviewsCount: number;
   children: React.ReactNode;
+  onReviewSubmitted?: () => void;
 };
 
 export default function ReviewsSection({
   buildingName,
   reviewsCount,
   children,
+  onReviewSubmitted,
 }: ReviewsSectionProps) {
   const router = useRouter();
   const [showForm, setShowForm] = useState(false);
@@ -58,8 +60,10 @@ export default function ReviewsSection({
   const handleReviewSubmit = () => {
     setShowForm(false);
     setUserHasReviewed(true);
-    // Reload the page to show the new review
-    router.refresh();
+    // Refresh the reviews list
+    if (onReviewSubmitted) {
+      onReviewSubmitted();
+    }
   };
 
   return (

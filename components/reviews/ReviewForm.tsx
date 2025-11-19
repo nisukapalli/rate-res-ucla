@@ -14,6 +14,7 @@ export default function ReviewForm({
   onCancel,
   onSubmit,
 }: ReviewFormProps) {
+  const currentYear = new Date().getFullYear();
   const [formData, setFormData] = useState({
     overall: 0,
     location: 0,
@@ -22,6 +23,8 @@ export default function ReviewForm({
     noise: 0,
     clean: 0,
     text: "",
+    yearStart: currentYear,
+    yearEnd: currentYear,
   });
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -48,6 +51,26 @@ export default function ReviewForm({
       formData.clean === 0
     ) {
       setError("Please rate all categories");
+      return;
+    }
+
+    if (formData.yearStart < 1919 || formData.yearStart > currentYear) {
+      setError(`Start year must be between 1919 and ${currentYear}`);
+      return;
+    }
+
+    if (formData.yearEnd < 1919 || formData.yearEnd > currentYear + 1) {
+      setError(`End year must be between 1919 and ${currentYear + 1}`);
+      return;
+    }
+
+    if (formData.yearStart > formData.yearEnd) {
+      setError("Start year cannot be after end year");
+      return;
+    }
+
+    if (formData.yearEnd - formData.yearStart > 4) {
+      setError("You cannot have lived in a building for more than 4 years");
       return;
     }
 
@@ -79,6 +102,8 @@ export default function ReviewForm({
           noise: formData.noise,
           clean: formData.clean,
           text: formData.text || null,
+          yearStart: formData.yearStart,
+          yearEnd: formData.yearEnd,
           authorId: user.id,
         }),
       });
@@ -97,6 +122,8 @@ export default function ReviewForm({
         noise: 0,
         clean: 0,
         text: "",
+        yearStart: currentYear,
+        yearEnd: currentYear,
       });
 
       if (onSubmit) {
@@ -188,6 +215,38 @@ export default function ReviewForm({
             />
           </div>
         </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Year Started
+            </label>
+            <input
+              type="number"
+              value={formData.yearStart}
+              onChange={(e) =>
+                setFormData({ ...formData, yearStart: parseInt(e.target.value) || currentYear })
+              }
+              min="1919"
+              max={currentYear}
+              className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-900"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Year Ended
+            </label>
+            <input
+              type="number"
+              value={formData.yearEnd}
+              onChange={(e) =>
+                setFormData({ ...formData, yearEnd: parseInt(e.target.value) || currentYear })
+              }
+              min="1919"
+              max={currentYear + 1}
+              className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-900"
+            />
+          </div>
+        </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Leave a comment (optional). Share more details about your experience.
@@ -215,6 +274,8 @@ export default function ReviewForm({
                 noise: 0,
                 clean: 0,
                 text: "",
+                yearStart: currentYear,
+                yearEnd: currentYear,
               });
               if (textareaRef.current) {
                 textareaRef.current.style.height = "60px";

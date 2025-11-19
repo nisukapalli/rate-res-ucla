@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter, notFound } from "next/navigation";
 import StarRating from "@/components/reviews/StarRating";
 import ReviewsSection from "@/components/reviews/ReviewsSection";
@@ -48,6 +48,8 @@ type Review = {
   noise: number;
   clean: number;
   text: string | null;
+  yearStart: number;
+  yearEnd: number;
   upvotes: number;
   downvotes: number;
   userVote: 'upvote' | 'downvote' | null;
@@ -75,6 +77,31 @@ export default function BuildingDetailPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest' | 'most-liked' | 'most-disliked'>('newest');
   const [loading, setLoading] = useState(true);
+
+  const fetchData = useCallback(async () => {
+    try {
+      // Fetch building
+      const buildingResponse = await fetch(`/api/buildings/${encodeURIComponent(name)}`);
+      if (!buildingResponse.ok) {
+        setBuilding(null);
+        setLoading(false);
+        return;
+      }
+      const buildingData = await buildingResponse.json();
+      setBuilding(buildingData);
+
+      // Fetch reviews
+      const reviewsResponse = await fetch(`/api/buildings/${encodeURIComponent(name)}/reviews`);
+      if (reviewsResponse.ok) {
+        const reviewsData = await reviewsResponse.json();
+        setReviews(reviewsData);
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [name]);
 
   const handleVote = async (reviewId: number, voteType: 'upvote' | 'downvote') => {
     try {
@@ -109,33 +136,8 @@ export default function BuildingDetailPage() {
   };
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        // Fetch building
-        const buildingResponse = await fetch(`/api/buildings/${encodeURIComponent(name)}`);
-        if (!buildingResponse.ok) {
-          setBuilding(null);
-          setLoading(false);
-          return;
-        }
-        const buildingData = await buildingResponse.json();
-        setBuilding(buildingData);
-
-        // Fetch reviews
-        const reviewsResponse = await fetch(`/api/buildings/${encodeURIComponent(name)}/reviews`);
-        if (reviewsResponse.ok) {
-          const reviewsData = await reviewsResponse.json();
-          setReviews(reviewsData);
-        }
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
     fetchData();
-  }, [name]);
+  }, [fetchData]);
 
   const sortedReviews = [...reviews].sort((a, b) => {
     if (sortOrder === 'newest' || sortOrder === 'oldest') {
@@ -263,7 +265,7 @@ export default function BuildingDetailPage() {
               <p className="text-gray-500">Image placeholder</p>
             </div>
 
-        <ReviewsSection buildingName={building.name} reviewsCount={reviews.length}>
+        <ReviewsSection buildingName={building.name} reviewsCount={reviews.length} onReviewSubmitted={fetchData}>
               {reviews.length > 0 && (
                 <div className="mb-6 flex items-center gap-3">
                   <label htmlFor="sort" className="text-sm font-medium text-gray-700">
@@ -292,9 +294,17 @@ export default function BuildingDetailPage() {
                       className="border border-gray-300 rounded-lg p-4 bg-white shadow-sm"
                 >
                   <div className="flex justify-between items-start mb-4">
-                    <p className="font-semibold text-gray-900">
-                      Class of {review.author.class}
-                    </p>
+                    <div>
+                      <p className="font-semibold text-gray-900">
+                        Class of {review.author.class}
+                      </p>
+                      <p className="text-sm text-gray-600 italic">
+                        {review.yearStart === review.yearEnd 
+                          ? `Lived here in ${review.yearStart}`
+                          : `Lived here from ${review.yearStart} to ${review.yearEnd}`
+                        }
+                      </p>
+                    </div>
                     <p className="text-sm text-gray-500">
                       {new Date(review.createdAt).toLocaleDateString()}
                     </p>
@@ -404,8 +414,8 @@ export default function BuildingDetailPage() {
                         <span className="text-sm font-medium text-gray-700">Location</span>
                         <InfoTooltip info={{
                           category: "Location",
-                          low: "Far from essential Hill facilities (e.g. dining halls, gym, etc.)",
-                          high: "Very close to many Hill facilities"
+                          low: "Far from essential facilities (e.g. food, gyms, stores, etc.)",
+                          high: "Very close to essential facilities"
                         }} />
                       </div>
                       <span className="text-sm font-semibold text-gray-900">{averages.location} / 5</span>

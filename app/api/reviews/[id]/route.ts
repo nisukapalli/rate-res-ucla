@@ -87,7 +87,40 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { overall, location, distance, social, noise, clean, text } = body;
+    const { overall, location, distance, social, noise, clean, text, yearStart, yearEnd } = body;
+
+    // Validate year fields if provided
+    if (yearStart !== undefined && yearEnd !== undefined) {
+      const currentYear = new Date().getFullYear();
+      
+      if (yearStart < 1919 || yearStart > currentYear) {
+        return NextResponse.json(
+          { error: `Start year must be between 1919 and ${currentYear}` },
+          { status: 400 }
+        );
+      }
+
+      if (yearEnd < 1919 || yearEnd > currentYear + 1) {
+        return NextResponse.json(
+          { error: `End year must be between 1919 and ${currentYear + 1}` },
+          { status: 400 }
+        );
+      }
+
+      if (yearStart > yearEnd) {
+        return NextResponse.json(
+          { error: "Start year cannot be after end year" },
+          { status: 400 }
+        );
+      }
+
+      if (yearEnd - yearStart > 4) {
+        return NextResponse.json(
+          { error: "You cannot have lived in a building for more than 4 years" },
+          { status: 400 }
+        );
+      }
+    }
 
     // Update the review
     const updatedReview = await prisma.review.update({
@@ -100,6 +133,8 @@ export async function PATCH(
         noise,
         clean,
         text: text || null,
+        ...(yearStart !== undefined && { yearStart }),
+        ...(yearEnd !== undefined && { yearEnd }),
       },
     });
 
