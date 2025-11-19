@@ -1,6 +1,7 @@
 # Rate Res UCLA
 
 Reviews/Ratings Web App for UCLA Housing.
+https://rate-res-ucla.vercel.app/
 
 ## Tech Stack
 
@@ -10,7 +11,3 @@ Reviews/Ratings Web App for UCLA Housing.
 - **Database**: PostgreSQL on Supabase
 - **ORM**: Prisma
 - **Deployment**: Vercel
-
-## Vercel Deployment
-
-https://rate-res-ucla.vercel.app/
