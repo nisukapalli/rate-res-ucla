@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import { useParams, notFound } from "next/navigation";
+import { useParams, useRouter, notFound } from "next/navigation";
 import StarRating from "@/components/reviews/StarRating";
 import ReviewsSection from "@/components/reviews/ReviewsSection";
 
@@ -67,12 +67,13 @@ type Building = {
 
 export default function BuildingDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const nameParam = params.name as string;
   const name = nameParam.replace(/_/g, " ");
 
   const [building, setBuilding] = useState<Building | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest' | 'most-liked' | 'most-disliked'>('newest');
   const [loading, setLoading] = useState(true);
 
   const handleVote = async (reviewId: number, voteType: 'upvote' | 'downvote') => {
@@ -94,6 +95,9 @@ export default function BuildingDetailPage() {
               : review
           )
         );
+      } else if (response.status === 401) {
+        // User is not authenticated, redirect to login
+        router.push('/login');
       } else {
         const error = await response.json();
         alert(error.error || 'Failed to vote');
@@ -134,9 +138,26 @@ export default function BuildingDetailPage() {
   }, [name]);
 
   const sortedReviews = [...reviews].sort((a, b) => {
-    const dateA = new Date(a.createdAt).getTime();
-    const dateB = new Date(b.createdAt).getTime();
-    return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+    if (sortOrder === 'newest' || sortOrder === 'oldest') {
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
+      return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+    } else if (sortOrder === 'most-liked') {
+      // Sort by upvotes descending
+      if (b.upvotes !== a.upvotes) {
+        return b.upvotes - a.upvotes;
+      }
+      // If upvotes are equal, sort by downvotes ascending (fewer downvotes first)
+      return a.downvotes - b.downvotes;
+    } else if (sortOrder === 'most-disliked') {
+      // Sort by downvotes descending
+      if (b.downvotes !== a.downvotes) {
+        return b.downvotes - a.downvotes;
+      }
+      // If downvotes are equal, sort by upvotes ascending (fewer upvotes first)
+      return a.upvotes - b.upvotes;
+    }
+    return 0;
   });
 
   // Calculate averages
@@ -176,14 +197,27 @@ export default function BuildingDetailPage() {
       case 'DELUXE':
         return 'bg-yellow-600 text-white';
       case 'PLAZA':
-        return 'bg-emerald-500 text-white';
+        return 'bg-green-700 text-white';
       case 'SUITE':
         return 'bg-fuchsia-500 text-white';
       case 'UNIV_APT':
-        return 'bg-teal-500 text-white';
+        return 'bg-cyan-500 text-white';
       default:
         return 'bg-gray-500 text-white';
     }
+  };
+
+  // Format building type for display
+  const formatBuildingType = (type: string) => {
+    const typeUpper = type.toUpperCase();
+    const typeMap: Record<string, string> = {
+      CLASSIC: "Classic",
+      DELUXE: "Deluxe",
+      PLAZA: "Plaza",
+      SUITE: "Suite",
+      UNIV_APT: "University Apartment",
+    };
+    return typeMap[typeUpper] || type;
   };
 
   // Get progress bar color based on rating value
@@ -216,7 +250,7 @@ export default function BuildingDetailPage() {
         </h1>
           <p className="text-lg text-gray-600 mb-2">{building.address}</p>
           <span className={`inline-block px-3 py-1 rounded text-sm font-medium ${getBadgeColor(building.type)}`}>
-            {building.type}
+            {formatBuildingType(building.type)}
           </span>
         </div>
 
@@ -238,11 +272,13 @@ export default function BuildingDetailPage() {
                   <select
                     id="sort"
                     value={sortOrder}
-                    onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest')}
+                    onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest' | 'most-liked' | 'most-disliked')}
                     className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm text-gray-900 bg-white"
                   >
                     <option value="newest">Newest First</option>
                     <option value="oldest">Oldest First</option>
+                    <option value="most-liked">Most Liked</option>
+                    <option value="most-disliked">Most Disliked</option>
                   </select>
                 </div>
               )}
@@ -296,9 +332,9 @@ export default function BuildingDetailPage() {
                       </p>
                     </div>
                   )}
-                      <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-200">
+                      <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-200 pl-3">
                         <button
-                          className={`flex items-center gap-1.5 transition-colors ${
+                          className={`flex items-center gap-1.5 transition-colors cursor-pointer ${
                             review.userVote === 'upvote' 
                               ? 'text-green-600' 
                               : 'text-green-500 hover:text-green-600'
@@ -317,7 +353,7 @@ export default function BuildingDetailPage() {
                           <span className="text-sm font-medium">{review.upvotes}</span>
                         </button>
                         <button
-                          className={`flex items-center gap-1.5 transition-colors ${
+                          className={`flex items-center gap-1.5 transition-colors cursor-pointer ${
                             review.userVote === 'downvote' 
                               ? 'text-red-600' 
                               : 'text-red-500 hover:text-red-600'

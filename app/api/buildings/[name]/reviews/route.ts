@@ -13,7 +13,7 @@ export async function GET(
 
     // Check if user is logged in
     const cookieStore = await cookies();
-    const token = cookieStore.get("token");
+    const token = cookieStore.get("auth-token");
     let userId: number | null = null;
 
     if (token) {

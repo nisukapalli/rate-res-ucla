@@ -10,7 +10,7 @@ export async function POST(
   try {
     // Check authentication
     const cookieStore = await cookies();
-    const token = cookieStore.get("token");
+    const token = cookieStore.get("auth-token");
 
     if (!token) {
       return NextResponse.json(
@@ -19,8 +19,16 @@ export async function POST(
       );
     }
 
-    const decoded = verify(token.value, process.env.JWT_SECRET!) as { userId: number };
-    const userId = decoded.userId;
+    let userId: number;
+    try {
+      const decoded = verify(token.value, process.env.JWT_SECRET!) as { userId: number };
+      userId = decoded.userId;
+    } catch (err) {
+      return NextResponse.json(
+        { error: "Invalid or expired session. Please log in again." },
+        { status: 401 }
+      );
+    }
 
     const { id } = await params;
     const reviewId = parseInt(id);
@@ -57,9 +65,30 @@ export async function POST(
     const newVoteType = voteType === "upvote" ? "UPVOTE" : "DOWNVOTE";
 
     if (existingVote) {
-      // User is changing their vote
-      if (existingVote.voteType !== newVoteType) {
-        // Update the vote
+      if (existingVote.voteType === newVoteType) {
+        // User is removing their vote
+        await prisma.userVote.delete({
+          where: { id: existingVote.id },
+        });
+
+        // Decrement the count
+        if (newVoteType === "UPVOTE") {
+          await prisma.review.update({
+            where: { id: reviewId },
+            data: {
+              upvotes: review.upvotes - 1,
+            },
+          });
+        } else {
+          await prisma.review.update({
+            where: { id: reviewId },
+            data: {
+              downvotes: review.downvotes - 1,
+            },
+          });
+        }
+      } else {
+        // User is changing their vote
         await prisma.userVote.update({
           where: { id: existingVote.id },
           data: { voteType: newVoteType },
@@ -84,7 +113,6 @@ export async function POST(
           });
         }
       }
-      // If same vote, do nothing (user already voted this way)
     } else {
       // Create new vote
       await prisma.userVote.create({
@@ -114,10 +142,20 @@ export async function POST(
       },
     });
 
+    // Check if vote was removed
+    const finalVote = await prisma.userVote.findUnique({
+      where: {
+        userId_reviewId: {
+          userId,
+          reviewId,
+        },
+      },
+    });
+
     return NextResponse.json({
       upvotes: updatedReview!.upvotes,
       downvotes: updatedReview!.downvotes,
-      userVote: newVoteType.toLowerCase(),
+      userVote: finalVote ? finalVote.voteType.toLowerCase() : null,
     });
   } catch (error) {
     console.error("Error voting on review:", error);

@@ -15,11 +15,22 @@ const getBuildingTypeBadgeColor = (type: string): string => {
   const colorMap: Record<string, string> = {
     CLASSIC: "bg-indigo-600 text-white",
     DELUXE: "bg-yellow-600 text-white",
-    PLAZA: "bg-emerald-500 text-white",
+    PLAZA: "bg-green-700 text-white",
     SUITE: "bg-fuchsia-500 text-white",
-    UNIV_APT: "bg-teal-500 text-white",
+    UNIV_APT: "bg-cyan-500 text-white",
   };
   return colorMap[type] || "bg-gray-500 text-white";
+};
+
+const formatBuildingType = (type: string): string => {
+  const typeMap: Record<string, string> = {
+    CLASSIC: "Classic",
+    DELUXE: "Deluxe",
+    PLAZA: "Plaza",
+    SUITE: "Suite",
+    UNIV_APT: "University Apartment",
+  };
+  return typeMap[type] || type;
 };
 
 export default function BuildingCard({ building }: BuildingCardProps) {
@@ -38,7 +49,7 @@ export default function BuildingCard({ building }: BuildingCardProps) {
         <p className="text-sm text-gray-600">{building.address}</p>
       </div>
       <span className={`inline-block px-3 py-1 rounded text-sm font-medium ${badgeColor} self-start mt-4`}>
-        {building.type}
+        {formatBuildingType(building.type)}
       </span>
     </Link>
   );

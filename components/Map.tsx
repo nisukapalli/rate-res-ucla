@@ -48,14 +48,27 @@ const getMarkerColor = (type: string): string => {
     case 'DELUXE':
       return '#CA8A04'; // yellow-600
     case 'PLAZA':
-      return '#10B981'; // emerald-500
+      return '#15803D'; // green-700
     case 'SUITE':
       return '#D946EF'; // fuchsia-500
     case 'UNIV_APT':
-      return '#14B8A6'; // teal-500
+      return '#06B6D4'; // cyan-500
     default:
       return '#6B7280'; // gray
   }
+};
+
+// Format building type for display
+const formatBuildingType = (type: string): string => {
+  const typeUpper = type.toUpperCase();
+  const typeMap: Record<string, string> = {
+    CLASSIC: "Classic",
+    DELUXE: "Deluxe",
+    PLAZA: "Plaza",
+    SUITE: "Suite",
+    UNIV_APT: "University Apartment",
+  };
+  return typeMap[typeUpper] || type;
 };
 
 function MapContent() {
@@ -114,7 +127,7 @@ export default function Map({ buildings = [] }: MapProps) {
                   </Link>
                   <p className="text-xs text-gray-600 leading-tight mb-0.5">{building.address}</p>
                   <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-medium text-white`} style={{ backgroundColor: markerColor }}>
-                    {building.type}
+                    {formatBuildingType(building.type)}
                   </span>
                 </div>
               </Popup>

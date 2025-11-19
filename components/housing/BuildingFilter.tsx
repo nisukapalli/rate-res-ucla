@@ -49,7 +49,17 @@ export default function BuildingFilter({ buildings }: BuildingFilterProps) {
           return newSelection.length === 0 ? ["ALL"] : newSelection;
         } else {
           // If not selected, add it
-          return [...withoutAll, type];
+          const newSelection = [...withoutAll, type];
+          
+          // If all 5 types are now selected, switch back to ALL
+          const allSpecificTypes = ["CLASSIC", "DELUXE", "PLAZA", "SUITE", "UNIV_APT"];
+          const hasAllTypes = allSpecificTypes.every(t => newSelection.includes(t));
+          
+          if (hasAllTypes) {
+            return ["ALL"];
+          }
+          
+          return newSelection;
         }
       });
     }
